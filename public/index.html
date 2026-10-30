@@ -1,29 +1,396 @@
-<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>MARKET WARS</title><style>
-:root{--bg:#080d18;--panel:#111d30;--line:#283a53;--txt:#edf4ff;--muted:#93a7c1;--green:#26d69a;--red:#ff647d;--gold:#f4c66d}*{box-sizing:border-box}body{margin:0;background:radial-gradient(ellipse at 20% 0%,#172b4a,#080d18 60%);color:var(--txt);font:14px system-ui}header{padding:18px 24px;border-bottom:1px solid var(--line);font-size:20px;font-weight:900;letter-spacing:2px}header span{color:var(--green)}main{max-width:1200px;margin:auto;padding:22px}.panel{background:#111d30eF;border:1px solid var(--line);border-radius:14px;padding:16px;margin-bottom:14px}.muted{color:var(--muted)}button{background:var(--green);border:0;border-radius:8px;padding:10px 14px;font-weight:800;cursor:pointer}button.alt{background:#22334c;color:white;border:1px solid var(--line)}input,select{background:#0a1423;color:white;border:1px solid var(--line);padding:10px;border-radius:8px;min-width:0}.row{display:flex;gap:9px;flex-wrap:wrap}.row>*{flex:1}.hidden{display:none}.grid{display:grid;grid-template-columns:1.7fr 1fr;gap:14px}.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}.stat small{display:block;color:var(--muted)}.stat b{font-size:20px}.timer{color:var(--gold);font-size:22px;font-weight:900}.table{width:100%;border-collapse:collapse}.table td,.table th{text-align:left;padding:10px 6px;border-bottom:1px solid var(--line)}.table th{color:var(--muted);font-size:11px}.positive{color:var(--green)}.negative{color:var(--red)}.leader{display:flex;justify-content:space-between;padding:9px 0;border-bottom:1px solid var(--line)}.room{color:var(--gold);letter-spacing:3px;font-weight:900}.note{font-size:12px;color:var(--muted);line-height:1.5}@media(max-width:800px){.grid{grid-template-columns:1fr}.stats{grid-template-columns:1fr 1fr}main{padding:12px}header{padding:15px}}
-</style></head><body><header>MARKET <span>WARS</span></header><main>
-<section id="lobby" class="panel"><h1>Enter the trading arena</h1><p class="muted">2–8 players · ₹10,00,000 virtual cash · 10 rounds · 3 minutes per round</p><div class="row"><input id="name" placeholder="Player name" maxlength="18" value="Trader"><button id="create">Create private room</button></div><div class="row" style="margin-top:9px"><input id="code" placeholder="6-character room code" maxlength="6"><button class="alt" id="join">Join room</button></div><p class="note">Share the room code with friends. The host starts the game once at least two players have joined.</p></section>
-<section id="game" class="hidden"><div class="row" style="align-items:center"><div style="flex:2"><div class="muted">PRIVATE ROOM <span class="room" id="room"></span></div><h1>Trading terminal</h1></div><div class="timer" id="timer">03:00</div><button class="alt hidden" id="start">Start game</button></div>
-<div class="stats"><div class="panel stat"><small>PORTFOLIO VALUE</small><b id="value">₹10,00,000</b></div><div class="panel stat"><small>AVAILABLE CASH</small><b id="cash">₹10,00,000</b></div><div class="panel stat"><small>PROFIT / LOSS</small><b id="pnl">₹0</b></div><div class="panel stat"><small>ROUND</small><b id="round">LOBBY</b></div></div>
-<div class="grid"><div><div class="panel"><h3>Market watch</h3><table class="table"><thead><tr><th>STOCK</th><th>PRICE</th><th>CHANGE</th><th>TRADE</th></tr></thead><tbody id="stocks"></tbody></table></div><div class="panel"><h3>My holdings</h3><div id="holdings" class="muted">No holdings</div><h3>My pending orders</h3><div id="orders" class="muted">No pending orders</div><h3>Transactions</h3><div id="transactions" class="muted">No transactions</div></div></div>
-<aside><div class="panel"><h3>Place order</h3><div class="row"><select id="symbol"></select><select id="side"><option>BUY</option><option>SELL</option></select></div><div class="row" style="margin-top:9px"><input id="qty" type="number" min="1" value="10"><button id="submit">Queue order</button></div><p class="note">Orders are validated by the server and settled at the shared round-end prices.</p></div><div class="panel"><h3>Leaderboard</h3><div id="leaders"></div><h3>Players</h3><div id="players"></div></div><div class="panel"><h3>Market news</h3><div id="news"></div></div></aside></div></section>
-<div id="msg" class="muted"></div></main><script src="/socket.io/socket.io.js"></script><script>
-const socket=io();let roomCode="",state=null;const $=id=>document.getElementById(id);const fmt=n=>"₹"+Math.round(n).toLocaleString("en-IN");function say(t){$("msg").textContent=t}
-function entered(code){roomCode=code;$("room").textContent=code;$("lobby").classList.add("hidden");$("game").classList.remove("hidden")}
-$("create").onclick=()=>socket.emit("createRoom",{name:$("name").value},r=>{if(!r.ok)return say(r.error);entered(r.code)});
-$("join").onclick=()=>socket.emit("joinRoom",{code:$("code").value.trim().toUpperCase(),name:$("name").value},r=>{if(!r.ok)return say(r.error);entered(r.code)});
-$("start").onclick=()=>socket.emit("startGame",{},r=>say(r.ok?"Game started":r.error));
-$("submit").onclick=()=>{if(!state||state.phase!=="trading")return say("Trading is not open");socket.emit("placeOrder",{side:$("side").value,symbol:$("symbol").value,quantity:+$("qty").value,orderId:crypto.randomUUID()},r=>say(r.ok?"Order queued":r.error))};
-socket.on("state",s=>{state=s;entered(s.code);$("start").classList.toggle("hidden",s.phase!=="lobby"||!s.you||!s.players.length||s.players[0].id);$("round").textContent=s.phase==="lobby"?"LOBBY":`${s.round} / ${s.totalRounds}`;$("timer").textContent=s.phase==="trading"?`${String(Math.floor(s.secondsLeft/60)).padStart(2,"0")}:${String(s.secondsLeft%60).padStart(2,"0")}`:s.phase.toUpperCase();if(!s.you)return;
-$("value").textContent=fmt(s.you.portfolioValue);$("cash").textContent=fmt(s.you.cash);let pnl=s.you.portfolioValue-1000000;$("pnl").textContent=(pnl>=0?"+":"")+fmt(pnl);$("pnl").className=pnl>=0?"positive":"negative";
-$("symbol").innerHTML=Object.keys(s.market).map(k=>`<option>${k}</option>`).join("");
-$("stocks").innerHTML=Object.values(s.market).map(x=>`<tr><td><b>${x.symbol}</b></td><td>${fmt(x.price)}</td><td class="${x.changePct>=0?"positive":"negative"}">${x.changePct>=0?"+":""}${x.changePct.toFixed(2)}%</td><td><button class="alt" onclick="document.getElementById('symbol').value='${x.symbol}'">Select</button></td></tr>`).join("");
-$("holdings").innerHTML=Object.entries(s.you.holdings).map(([k,v])=>`<div class="leader"><span>${k} × ${v}</span><b>${fmt(v*s.market[k].price)}</b></div>`).join("")||"No holdings yet";
-$("orders").innerHTML=s.you.pendingOrders.map(o=>`<div class="leader"><span>${o.side} ${o.quantity} ${o.symbol}</span><button class="alt" onclick="cancel('${o.id}')">Cancel</button></div>`).join("")||"No pending orders";
-$("transactions").innerHTML=s.you.transactions.slice(0,8).map(t=>`<div class="leader"><span>${t.side} ${t.quantity} ${t.symbol}</span><b>${t.status}</b></div>`).join("")||"No transactions";
-$("leaders").innerHTML=s.players.map((p,i)=>`<div class="leader"><span>${i+1}. ${p.name}</span><b>${fmt(p.portfolioValue)}</b></div>`).join("");
-$("players").innerHTML=s.players.map(p=>`<div class="leader"><span>${p.name}</span><span class="${p.connected?"positive":"negative"}">${p.connected?"● online":"○ offline"}</span></div>`).join("");
-$("news").innerHTML=s.news.map(n=>`<div class="leader"><span><b>${n.title}</b><br><small class="muted">${n.body}</small></span></div>`).join("");
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>MARKET WARS</title>
+<style>
+:root {
+  --bg:#080d18; --panel:#111d30; --line:#283a53;
+  --txt:#edf4ff; --muted:#93a7c1;
+  --green:#26d69a; --red:#ff647d; --gold:#f4c66d;
+}
+* { box-sizing:border-box }
+body {
+  margin:0;
+  background:radial-gradient(ellipse at 20% 0%,#172b4a,#080d18 60%);
+  color:var(--txt);
+  font:14px system-ui;
+}
+header {
+  padding:18px 24px;
+  border-bottom:1px solid var(--line);
+  font-size:20px;font-weight:900;letter-spacing:2px;
+}
+header span { color:var(--green) }
+main { max-width:1200px;margin:auto;padding:22px }
+.panel {
+  background:#111d30ef;border:1px solid var(--line);
+  border-radius:14px;padding:16px;margin-bottom:14px;
+}
+.muted { color:var(--muted) }
+button {
+  background:var(--green);border:0;border-radius:8px;
+  padding:10px 14px;font-weight:800;cursor:pointer;
+}
+button.alt {
+  background:#22334c;color:white;border:1px solid var(--line);
+}
+button:disabled { opacity:.5;cursor:not-allowed }
+input,select {
+  background:#0a1423;color:white;border:1px solid var(--line);
+  padding:10px;border-radius:8px;min-width:0;
+}
+.row { display:flex;gap:9px;flex-wrap:wrap }
+.row>* { flex:1 }
+.hidden { display:none!important }
+.grid {
+  display:grid;grid-template-columns:1.7fr 1fr;gap:14px;
+}
+.stats {
+  display:grid;grid-template-columns:repeat(4,1fr);gap:10px;
+}
+.stat small { display:block;color:var(--muted) }
+.stat b { font-size:20px }
+.timer { color:var(--gold);font-size:22px;font-weight:900 }
+.table { width:100%;border-collapse:collapse }
+.table td,.table th {
+  text-align:left;padding:10px 6px;border-bottom:1px solid var(--line);
+}
+.table th { color:var(--muted);font-size:11px }
+.positive { color:var(--green) }
+.negative { color:var(--red) }
+.leader {
+  display:flex;justify-content:space-between;
+  padding:9px 0;border-bottom:1px solid var(--line);
+}
+.room { color:var(--gold);letter-spacing:3px;font-weight:900 }
+.note { font-size:12px;color:var(--muted);line-height:1.5 }
+#start { background:var(--gold);color:#172033 }
+#msg { padding:10px 0 }
+@media(max-width:800px) {
+  .grid { grid-template-columns:1fr }
+  .stats { grid-template-columns:1fr 1fr }
+  main { padding:12px }
+  header { padding:15px }
+  .table td,.table th { padding:8px 4px;font-size:12px }
+}
+</style>
+</head>
+
+<body>
+<header>MARKET <span>WARS</span></header>
+<main>
+
+<section id="lobby" class="panel">
+  <h1>Enter the trading arena</h1>
+  <p class="muted">
+    2–8 players · ₹10,00,000 virtual cash · 10 rounds · 3 minutes per round
+  </p>
+  <div class="row">
+    <input id="name" placeholder="Player name" maxlength="18" value="Trader">
+    <button id="create">Create private room</button>
+  </div>
+  <div class="row" style="margin-top:9px">
+    <input id="code" placeholder="6-character room code" maxlength="6">
+    <button class="alt" id="join">Join room</button>
+  </div>
+  <p class="note">
+    Share the room code with friends. The host starts the game once at least two players have joined.
+  </p>
+</section>
+
+<section id="game" class="hidden">
+
+  <div class="row" style="align-items:center">
+    <div style="flex:2">
+      <div class="muted">PRIVATE ROOM <span class="room" id="room"></span></div>
+      <h1>Trading terminal</h1>
+    </div>
+    <div class="timer" id="timer">LOBBY</div>
+    <button id="start" class="hidden">START GAME</button>
+  </div>
+
+  <div class="stats">
+    <div class="panel stat">
+      <small>PORTFOLIO VALUE</small>
+      <b id="value">₹10,00,000</b>
+    </div>
+    <div class="panel stat">
+      <small>AVAILABLE CASH</small>
+      <b id="cash">₹10,00,000</b>
+    </div>
+    <div class="panel stat">
+      <small>PROFIT / LOSS</small>
+      <b id="pnl">₹0</b>
+    </div>
+    <div class="panel stat">
+      <small>ROUND</small>
+      <b id="round">LOBBY</b>
+    </div>
+  </div>
+
+  <div class="grid">
+
+    <div>
+      <div class="panel">
+        <h3>Market watch</h3>
+        <table class="table">
+          <thead>
+            <tr>
+              <th>STOCK</th><th>PRICE</th><th>CHANGE</th><th>TRADE</th>
+            </tr>
+          </thead>
+          <tbody id="stocks"></tbody>
+        </table>
+      </div>
+
+      <div class="panel">
+        <h3>My holdings</h3>
+        <div id="holdings" class="muted">No holdings yet</div>
+        <h3>My pending orders</h3>
+        <div id="orders" class="muted">No pending orders</div>
+        <h3>Transactions</h3>
+        <div id="transactions" class="muted">No transactions</div>
+      </div>
+    </div>
+
+    <aside>
+      <div class="panel">
+        <h3>Place order</h3>
+        <div class="row">
+          <select id="symbol"></select>
+          <select id="side">
+            <option>BUY</option>
+            <option>SELL</option>
+          </select>
+        </div>
+        <div class="row" style="margin-top:9px">
+          <input id="qty" type="number" min="1" value="10">
+          <button id="submit">Queue order</button>
+        </div>
+        <p class="note">
+          Orders are validated by the server and settled at the shared round-end prices.
+        </p>
+      </div>
+
+      <div class="panel">
+        <h3>Leaderboard</h3>
+        <div id="leaders"></div>
+        <h3>Players</h3>
+        <div id="players"></div>
+      </div>
+
+      <div class="panel">
+        <h3>Market news</h3>
+        <div id="news"></div>
+      </div>
+    </aside>
+  </div>
+</section>
+
+<div id="msg" class="muted"></div>
+</main>
+
+<script src="/socket.io/socket.io.js"></script>
+<script>
+const socket = io();
+
+let roomCode = "";
+let state = null;
+
+const $ = id => document.getElementById(id);
+
+const fmt = n =>
+  "₹" + Math.round(n).toLocaleString("en-IN");
+
+function say(message) {
+  $("msg").textContent = message;
+}
+
+function entered(code) {
+  roomCode = code;
+  $("room").textContent = code;
+  $("lobby").classList.add("hidden");
+  $("game").classList.remove("hidden");
+}
+
+$("create").onclick = () => {
+  const name = $("name").value.trim();
+  if (!name) return say("Please enter your player name.");
+
+  $("create").disabled = true;
+
+  socket.emit("createRoom", {name}, r => {
+    $("create").disabled = false;
+    if (!r.ok) return say(r.error);
+    entered(r.code);
+    say("Private room created. Share the room code with friends.");
+  });
+};
+
+$("join").onclick = () => {
+  const name = $("name").value.trim();
+  const code = $("code").value.trim().toUpperCase();
+
+  if (!name) return say("Please enter your player name.");
+  if (code.length !== 6) return say("Enter a valid 6-character room code.");
+
+  $("join").disabled = true;
+
+  socket.emit("joinRoom", {code, name}, r => {
+    $("join").disabled = false;
+    if (!r.ok) return say(r.error);
+    entered(r.code);
+    say("You joined the room successfully.");
+  });
+};
+
+$("start").onclick = () => {
+  $("start").disabled = true;
+
+  socket.emit("startGame", {}, r => {
+    $("start").disabled = false;
+    say(r.ok ? "Game started!" : r.error);
+  });
+};
+
+$("submit").onclick = () => {
+  if (!state || state.phase !== "trading") {
+    return say("Trading is not open.");
+  }
+
+  const quantity = Number($("qty").value);
+
+  if (!Number.isSafeInteger(quantity) || quantity < 1) {
+    return say("Enter a valid quantity.");
+  }
+
+  socket.emit("placeOrder", {
+    side: $("side").value,
+    symbol: $("symbol").value,
+    quantity,
+    orderId: crypto.randomUUID()
+  }, r => {
+    say(r.ok ? "Order queued successfully." : r.error);
+  });
+};
+
+socket.on("state", s => {
+  state = s;
+  entered(s.code);
+
+  // Only the room host sees the Start Game button.
+  const canStart =
+    s.phase === "lobby" &&
+    s.isHost === true &&
+    s.players.length >= 2;
+
+  $("start").classList.toggle("hidden", !canStart);
+
+  $("round").textContent =
+    s.phase === "lobby"
+      ? "LOBBY"
+      : ${s.round} / ${s.totalRounds};
+
+  $("timer").textContent =
+    s.phase === "trading"
+      ? ${String(Math.floor(s.secondsLeft / 60)).padStart(2,"0")}:${String(s.secondsLeft % 60).padStart(2,"0")}
+      : s.phase.toUpperCase();
+
+  if (!s.you) return;
+
+  $("value").textContent = fmt(s.you.portfolioValue);
+  $("cash").textContent = fmt(s.you.cash);
+
+  const pnl = s.you.portfolioValue - 1000000;
+  $("pnl").textContent = (pnl >= 0 ? "+" : "") + fmt(pnl);
+  $("pnl").className = pnl >= 0 ? "positive" : "negative";
+
+  $("symbol").innerHTML =
+    Object.keys(s.market)
+      .map(k => <option>${k}</option>)
+      .join("");
+
+  $("stocks").innerHTML =
+    Object.values(s.market).map(x => `
+      <tr>
+        <td><b>${x.symbol}</b></td>
+        <td>${fmt(x.price)}</td>
+        <td class="${x.changePct >= 0 ? "positive" : "negative"}">
+          ${x.changePct >= 0 ? "+" : ""}${x.changePct.toFixed(2)}%
+        </td>
+        <td>
+          <button class="alt"
+            onclick="document.getElementById('symbol').value='${x.symbol}'">
+            Select
+          </button>
+        </td>
+      </tr>
+    `).join("");
+
+  $("holdings").innerHTML =
+    Object.entries(s.you.holdings)
+      .map(([k,v]) => `
+        <div class="leader">
+          <span>${k} × ${v}</span>
+          <b>${fmt(v * s.market[k].price)}</b>
+        </div>
+      `).join("") || "No holdings yet";
+
+  $("orders").innerHTML =
+    s.you.pendingOrders.map(o => `
+      <div class="leader">
+        <span>${o.side} ${o.quantity} ${o.symbol}</span>
+        <button class="alt" onclick="cancelOrder('${o.id}')">Cancel</button>
+      </div>
+    `).join("") || "No pending orders";
+
+  $("transactions").innerHTML =
+    s.you.transactions.slice(0,8).map(t => `
+      <div class="leader">
+        <span>${t.side} ${t.quantity} ${t.symbol}</span>
+        <b>${t.status}</b>
+      </div>
+    `).join("") || "No transactions";
+
+  $("leaders").innerHTML =
+    s.players.map((p,i) => `
+      <div class="leader">
+        <span>${i+1}. ${p.name}</span>
+        <b>${fmt(p.portfolioValue)}</b>
+      </div>
+    `).join("");
+
+  $("players").innerHTML =
+    s.players.map(p => `
+      <div class="leader">
+        <span>${p.name}</span>
+        <span class="${p.connected ? "positive" : "negative"}">
+          ${p.connected ? "● online" : "○ offline"}
+        </span>
+      </div>
+    `).join("");
+
+  $("news").innerHTML =
+    s.news.map(n => `
+      <div class="leader">
+        <span>
+          <b>${n.title}</b><br>
+          <small class="muted">${n.body}</small>
+        </span>
+      </div>
+    `).join("");
 });
-function cancel(id){socket.emit("cancelOrder",{orderId:id},r=>say(r.ok?"Order cancelled":"Could not cancel order"))}
-socket.on("connect",()=>say("Connected to game server"));socket.on("disconnect",()=>say("Disconnected. Reconnect to resume your session."));
-</script></body></html>
+
+function cancelOrder(id) {
+  socket.emit("cancelOrder", {orderId:id}, r => {
+    say(r.ok ? "Order cancelled." : "Could not cancel order.");
+  });
+}
+
+socket.on("connect", () => say("Connected to game server."));
+socket.on("disconnect", () => say("Disconnected. Reconnect to resume your session."));
+</script>
+</body>
+</html>
