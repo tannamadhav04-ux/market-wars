@@ -25,7 +25,7 @@ function portfolio(p) { return p.cash + Object.entries(p.holdings).reduce((sum,[
 function roomSnapshot(r, viewerId) {
   const viewer = r.players.get(viewerId);
   return {
-    code:r.code,phase:r.phase,round:r.round,secondsLeft:r.secondsLeft,market:r.market,
+    code:r.code,isHost:viewerId===r.hostId,phase:r.phase,round:r.round,secondsLeft:r.secondsLeft,market:r.market,
     news:r.news,players:[...r.players.values()].map(publicPlayer).sort((a,b)=>b.portfolioValue-a.portfolioValue),
     you:viewer ? {cash:viewer.cash,holdings:viewer.holdings,pendingOrders:viewer.orders,transactions:viewer.transactions,portfolioValue:portfolio(viewer)} : null,
     minPlayers:MIN_PLAYERS,maxPlayers:MAX_PLAYERS,totalRounds:TOTAL_ROUNDS
