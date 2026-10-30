@@ -1,586 +1,91 @@
 <!doctype html>
 <html lang="en">
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<title>MARKET WARS</title>
-
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#080b13"><title>MARKET WARS — Can You Beat The Market?</title>
 <style>
-:root {
-  --bg:#080d18;
-  --panel:#111d30;
-  --line:#283a53;
-  --txt:#edf4ff;
-  --muted:#93a7c1;
-  --green:#26d69a;
-  --red:#ff647d;
-  --gold:#f4c66d;
-}
-
-* { box-sizing:border-box }
-
-body {
-  margin:0;
-  background:radial-gradient(ellipse at 20% 0%,#172b4a,#080d18 60%);
-  color:var(--txt);
-  font:14px system-ui;
-}
-
-header {
-  padding:18px 24px;
-  border-bottom:1px solid var(--line);
-  font-size:20px;
-  font-weight:900;
-  letter-spacing:2px;
-}
-
-header span { color:var(--green) }
-
-main {
-  max-width:1200px;
-  margin:auto;
-  padding:22px;
-}
-
-.panel {
-  background:#111d30ef;
-  border:1px solid var(--line);
-  border-radius:14px;
-  padding:16px;
-  margin-bottom:14px;
-}
-
-.muted { color:var(--muted) }
-
-button {
-  background:var(--green);
-  border:0;
-  border-radius:8px;
-  padding:10px 14px;
-  font-weight:800;
-  cursor:pointer;
-}
-
-button.alt {
-  background:#22334c;
-  color:white;
-  border:1px solid var(--line);
-}
-
-button:disabled {
-  opacity:.5;
-  cursor:not-allowed;
-}
-
-input,select {
-  background:#0a1423;
-  color:white;
-  border:1px solid var(--line);
-  padding:10px;
-  border-radius:8px;
-  min-width:0;
-}
-
-.row {
-  display:flex;
-  gap:9px;
-  flex-wrap:wrap;
-}
-
-.row>* { flex:1 }
-
-.hidden { display:none!important }
-
-.grid {
-  display:grid;
-  grid-template-columns:1.7fr 1fr;
-  gap:14px;
-}
-
-.stats {
-  display:grid;
-  grid-template-columns:repeat(4,1fr);
-  gap:10px;
-}
-
-.stat small {
-  display:block;
-  color:var(--muted);
-}
-
-.stat b { font-size:20px }
-
-.timer {
-  color:var(--gold);
-  font-size:22px;
-  font-weight:900;
-}
-
-.table {
-  width:100%;
-  border-collapse:collapse;
-}
-
-.table td,.table th {
-  text-align:left;
-  padding:10px 6px;
-  border-bottom:1px solid var(--line);
-}
-
-.table th {
-  color:var(--muted);
-  font-size:11px;
-}
-
-.positive { color:var(--green) }
-.negative { color:var(--red) }
-
-.leader {
-  display:flex;
-  justify-content:space-between;
-  padding:9px 0;
-  border-bottom:1px solid var(--line);
-}
-
-.room {
-  color:var(--gold);
-  letter-spacing:3px;
-  font-weight:900;
-}
-
-.note {
-  font-size:12px;
-  color:var(--muted);
-  line-height:1.5;
-}
-
-#start {
-  background:var(--gold);
-  color:#172033;
-}
-
-#msg { padding:10px 0 }
-
-@media(max-width:800px) {
-  .grid { grid-template-columns:1fr }
-  .stats { grid-template-columns:1fr 1fr }
-  main { padding:12px }
-  header { padding:15px }
-  .table td,.table th {
-    padding:8px 4px;
-    font-size:12px;
-  }
-}
+:root{--bg:#080b13;--panel:#101725;--panel2:#151f30;--line:#27364a;--muted:#9aabc0;--text:#f3f6fc;--green:#39e69a;--red:#ff596b;--gold:#f6c65c;--blue:#7db6ff;--shadow:0 20px 60px #0008}
+*{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;background:radial-gradient(ellipse at 15% 0%,#142b3a 0,transparent 36%),radial-gradient(ellipse at 90% 12%,#341b25 0,transparent 30%),var(--bg);color:var(--text);font:14px Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif;min-height:100vh}button,input,select{font:inherit}button{border:0;border-radius:10px;padding:12px 16px;font-weight:850;cursor:pointer;transition:.18s transform,.18s filter}button:hover{filter:brightness(1.1);transform:translateY(-1px)}button:disabled{opacity:.4;cursor:not-allowed;transform:none}.primary{background:linear-gradient(135deg,#58f0a7,#1cbf83);color:#06150e;box-shadow:0 8px 28px #22d18b35}.secondary{background:#1a293d;color:var(--text);border:1px solid #344760}.danger{background:#52232f;color:#ffdce2}.buy{background:#0c4d39;color:#b8ffdf;border:1px solid #1b8d66}.sell{background:#512432;color:#ffd4dc;border:1px solid #9b4055}
+header{height:68px;display:flex;align-items:center;justify-content:space-between;padding:0 clamp(14px,4vw,52px);border-bottom:1px solid #ffffff12;background:#080d16e8;position:sticky;top:0;z-index:10;backdrop-filter:blur(16px)}.brand{font-weight:1000;letter-spacing:2px;font-size:21px}.brand span{color:var(--green)}.tag{color:#91a3b9;font-size:10px;letter-spacing:2px;margin-left:15px}.topright{display:flex;gap:9px;align-items:center}.pill{border:1px solid var(--line);border-radius:99px;padding:7px 11px;color:var(--muted);font-size:11px;letter-spacing:.4px}.live-dot{display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--green);margin-right:6px;box-shadow:0 0 12px var(--green)}main{max-width:1500px;margin:auto;padding:clamp(14px,3vw,34px)}
+/* lobby */
+.lobby{max-width:1120px;margin:26px auto 50px}.cover{min-height:330px;border:1px solid #ffffff20;border-radius:22px;overflow:hidden;position:relative;background:#101827 url('/market-wars-cover.png') center 43%/cover no-repeat;box-shadow:var(--shadow)}.cover:before{content:"";position:absolute;inset:0;background:linear-gradient(90deg,#070a12e8 0%,#070a128f 42%,#070a1240 100%),linear-gradient(0deg,#070a12c9,transparent 50%)}.covercopy{position:relative;z-index:1;padding:34px;max-width:610px}.eyebrow{color:var(--green);font-size:10px;font-weight:950;letter-spacing:2.4px}.cover h1{font-size:clamp(36px,6vw,66px);line-height:.95;margin:13px 0 12px;letter-spacing:-2px;text-shadow:0 5px 24px #000}.cover h1 span{color:var(--gold)}.cover p{color:#d3deea;max-width:500px;line-height:1.65;margin:0 0 20px}.feature-strip{display:flex;gap:0;flex-wrap:wrap;margin-top:23px;border-top:1px solid #ffffff24;padding-top:17px}.feature{padding:0 17px 0 0;margin-right:17px;border-right:1px solid #ffffff30;color:#eaf1fa;font-size:10px;font-weight:800;letter-spacing:.6px}.feature b{display:block;color:var(--gold);font-size:15px;margin-bottom:3px}.entry{display:grid;grid-template-columns:1.1fr .9fr;gap:16px;margin-top:17px}.panel{background:linear-gradient(145deg,#131e2eeb,#0d1420f2);border:1px solid var(--line);border-radius:16px;padding:19px;box-shadow:0 12px 35px #0004}.panel h2,.panel h3{margin:0 0 13px}.panel h2{font-size:17px}.muted{color:var(--muted)}.entry p{color:var(--muted);line-height:1.6}.field{display:flex;flex-direction:column;gap:7px;margin:12px 0}.field label{font-size:10px;color:#aebdd0;font-weight:850;letter-spacing:1px}.field input,.field select{width:100%;background:#080f1b;color:var(--text);border:1px solid #314158;border-radius:10px;padding:13px 14px;outline:none}.field input:focus,.field select:focus{border-color:var(--green);box-shadow:0 0 0 3px #39e69a1a}.actions{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:14px}.actions button{width:100%}.fineprint{font-size:10px;color:#8192a9;line-height:1.6;margin-top:13px}.rules{display:grid;grid-template-columns:1fr 1fr;gap:10px}.rule{padding:12px;background:#0b1320;border:1px solid #25344a;border-radius:11px}.rule b{display:block;color:var(--gold);font-size:15px;margin-bottom:4px}.rule span{font-size:11px;color:var(--muted)}
+/* game */
+.hidden{display:none!important}.gamehero{display:flex;justify-content:space-between;align-items:center;gap:18px;margin-bottom:17px}.gamehero h1{font-size:27px;margin:5px 0}.heroactions{display:flex;align-items:center;gap:10px;flex-wrap:wrap}.timer{font-size:23px;font-weight:1000;color:var(--gold);font-variant-numeric:tabular-nums}.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:15px}.stat small{display:block;color:var(--muted);font-size:10px;letter-spacing:1px;font-weight:800;margin-bottom:8px}.stat strong{font-size:clamp(17px,2vw,23px);font-variant-numeric:tabular-nums}.positive{color:var(--green)}.negative{color:var(--red)}.layout{display:grid;grid-template-columns:minmax(0,1.8fr) minmax(300px,.85fr);gap:15px}.markethead{display:flex;justify-content:space-between;align-items:center;gap:10px}.markethead h3{font-size:13px;letter-spacing:.8px}.chartbox{height:185px;margin:8px 0 12px}.chartbox canvas{width:100%;height:100%}.tablewrap{overflow:auto}.table{width:100%;border-collapse:collapse;min-width:540px}.table th{text-align:left;color:var(--muted);font-size:10px;letter-spacing:.7px;padding:10px 8px;border-bottom:1px solid var(--line)}.table td{padding:11px 8px;border-bottom:1px solid #ffffff0d;font-variant-numeric:tabular-nums}.stock{font-weight:900}.symbol{font-size:10px;color:var(--muted)}.rowbtn{padding:7px 10px;font-size:10px}.two{display:grid;grid-template-columns:1fr 1fr;gap:13px;margin-top:14px}.tradegrid{display:grid;grid-template-columns:1fr 1fr;gap:9px}.tradegrid .field{margin:5px 0}.tradegrid .field input,.tradegrid .field select{padding:11px}.tradebuttons{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-top:10px}.notice{font-size:10px;color:var(--muted);line-height:1.55;margin-top:12px}.leader,.newsitem,.holding{display:flex;justify-content:space-between;gap:12px;padding:10px 0;border-bottom:1px solid #ffffff12}.leader:first-child{color:var(--gold)}.leader b,.holding b{font-variant-numeric:tabular-nums}.newsitem{display:block}.newsitem b{display:block;font-size:11px;margin-bottom:4px}.newsitem small{color:var(--muted);line-height:1.45}.sectiongap{margin-top:14px}.roomplayers{display:flex;flex-wrap:wrap;gap:7px}.playerchip{background:#0b1522;border:1px solid #2a3b51;border-radius:99px;padding:7px 10px;font-size:10px}.toast{position:fixed;left:50%;bottom:20px;transform:translateX(-50%);background:#17283c;border:1px solid #49617e;color:white;padding:12px 16px;border-radius:12px;z-index:30;box-shadow:var(--shadow);max-width:min(90vw,520px);text-align:center}.toast.error{border-color:#a74457;background:#351923}.statusline{font-size:11px;color:var(--muted);margin-top:8px;min-height:16px}
+@media(max-width:900px){.layout{grid-template-columns:1fr}.entry{grid-template-columns:1fr}.cover{min-height:360px}.stats{grid-template-columns:1fr 1fr}.tag{display:none}}@media(max-width:600px){header{height:58px;padding:0 13px}.brand{font-size:17px}.topright .pill:last-child{display:none}main{padding:12px}.covercopy{padding:24px 20px}.cover{min-height:410px;background-position:55% center}.cover h1{font-size:42px}.feature{padding-right:9px;margin-right:9px;font-size:9px}.feature b{font-size:13px}.panel{padding:14px}.gamehero{align-items:flex-start;flex-direction:column}.heroactions{width:100%;justify-content:space-between}.stats{gap:8px}.stat{padding:13px}.two{grid-template-columns:1fr}.actions{grid-template-columns:1fr}.rules{grid-template-columns:1fr 1fr}}
 </style>
 </head>
-
 <body>
-
-<header>MARKET <span>WARS</span></header>
-
+<header><div><span class="brand">MARKET <span>WARS</span></span><span class="tag">THE TRADING ARENA</span></div><div class="topright"><span class="pill"><i class="live-dot"></i>SIMULATED MARKET</span><span class="pill" id="roomPill">LOBBY</span></div></header>
 <main>
-
-<section id="lobby" class="panel">
-  <h1>Enter the trading arena</h1>
-
-  <p class="muted">
-    2–8 players · ₹10,00,000 virtual cash · 10 rounds · 3 minutes per round
-  </p>
-
-  <div class="row">
-    <input id="name" placeholder="Player name" maxlength="18" value="Trader">
-    <button id="create">Create private room</button>
+<section id="lobby" class="lobby">
+ <div class="cover"><div class="covercopy"><div class="eyebrow">HANDSHAKE AI SKILLS STUDIO · MULTIPLAYER GAME</div><h1>MARKET<br><span>WARS</span></h1><div style="font-weight:950;letter-spacing:2px">CAN YOU BEAT THE MARKET?</div><p>Build your strategy. Trade the volatility. Outplay your rivals in a shared Indian stock-market arena.</p><div class="feature-strip"><div class="feature"><b>2–8</b>PLAYERS</div><div class="feature"><b>10 ROUNDS</b>3 MIN / ROUND</div><div class="feature"><b>₹10 LAKH</b>VIRTUAL CASH</div><div class="feature"><b>SKILL BASED</b>NO REAL MONEY</div></div></div></div>
+ <div class="entry">
+  <div class="panel"><div class="eyebrow">ENTER THE TRADING ARENA</div><h2 style="margin-top:7px">Create a private room</h2><p>Invite friends and compete in the same simulated market. The room host starts the game when at least two players have joined.</p>
+   <div class="field"><label for="playerName">TRADER NAME</label><input id="playerName" maxlength="18" placeholder="Enter your player name" autocomplete="nickname"></div>
+   <div class="actions"><button class="primary" id="createBtn">＋ Create private room</button><button class="secondary" id="joinFocusBtn">Join with code ↓</button></div>
+   <div class="field" style="margin-top:18px"><label for="joinCode">6-CHARACTER ROOM CODE</label><input id="joinCode" maxlength="6" placeholder="e.g. A1B2C3" autocapitalize="characters"></div>
+   <button class="secondary" id="joinBtn" style="width:100%">Join room</button><div id="statusline" class="statusline" aria-live="polite"></div>
+   <div class="fineprint">Virtual trading simulation only. No real money, securities, or live market orders are involved.</div>
   </div>
-
-  <div class="row" style="margin-top:9px">
-    <input id="code" placeholder="6-character room code" maxlength="6">
-    <button class="alt" id="join">Join room</button>
-  </div>
-
-  <p class="note">
-    Share the room code with friends. The host starts the game once at least two players have joined.
-  </p>
+  <div class="panel"><div class="eyebrow">GAME FORMAT</div><h2 style="margin-top:7px">The rules of the arena</h2><div class="rules"><div class="rule"><b>2–8 Traders</b><span>Private multiplayer rooms</span></div><div class="rule"><b>₹10,00,000</b><span>Starting virtual cash</span></div><div class="rule"><b>10 Rounds</b><span>Three minutes each</span></div><div class="rule"><b>20 Stocks</b><span>Simulated Indian equities</span></div></div><p class="fineprint">Prices move in the game simulation. Orders are queued during a round and settled at the same round-close prices for every player. The final leaderboard ranks portfolio value.</p></div>
+ </div>
 </section>
-
 <section id="game" class="hidden">
-
-  <div class="row" style="align-items:center">
-    <div style="flex:2">
-      <div class="muted">
-        PRIVATE ROOM <span class="room" id="room"></span>
-      </div>
-      <h1>Trading terminal</h1>
-    </div>
-
-    <div class="timer" id="timer">LOBBY</div>
-    <button id="start" class="hidden">START GAME</button>
-  </div>
-
-  <div class="stats">
-
-    <div class="panel stat">
-      <small>PORTFOLIO VALUE</small>
-      <b id="value">₹10,00,000</b>
-    </div>
-
-    <div class="panel stat">
-      <small>AVAILABLE CASH</small>
-      <b id="cash">₹10,00,000</b>
-    </div>
-
-    <div class="panel stat">
-      <small>PROFIT / LOSS</small>
-      <b id="pnl">₹0</b>
-    </div>
-
-    <div class="panel stat">
-      <small>ROUND</small>
-      <b id="round">LOBBY</b>
-    </div>
-
-  </div>
-
-  <div class="grid">
-
-    <div>
-
-      <div class="panel">
-        <h3>Market watch</h3>
-
-        <table class="table">
-          <thead>
-            <tr>
-              <th>STOCK</th>
-              <th>PRICE</th>
-              <th>CHANGE</th>
-              <th>TRADE</th>
-            </tr>
-          </thead>
-          <tbody id="stocks"></tbody>
-        </table>
-      </div>
-
-      <div class="panel">
-        <h3>My holdings</h3>
-        <div id="holdings" class="muted">No holdings yet</div>
-
-        <h3>My pending orders</h3>
-        <div id="orders" class="muted">No pending orders</div>
-
-        <h3>Transactions</h3>
-        <div id="transactions" class="muted">No transactions</div>
-      </div>
-
-    </div>
-
-    <aside>
-
-      <div class="panel">
-        <h3>Place order</h3>
-
-        <div class="row">
-          <select id="symbol"></select>
-
-          <select id="side">
-            <option>BUY</option>
-            <option>SELL</option>
-          </select>
-        </div>
-
-        <div class="row" style="margin-top:9px">
-          <input id="qty" type="number" min="1" value="10">
-          <button id="submit">Queue order</button>
-        </div>
-
-        <p class="note">
-          Orders are validated by the server and settled at the shared round-end prices.
-        </p>
-      </div>
-
-      <div class="panel">
-        <h3>Leaderboard</h3>
-        <div id="leaders"></div>
-
-        <h3>Players</h3>
-        <div id="players"></div>
-      </div>
-
-      <div class="panel">
-        <h3>Market news</h3>
-        <div id="news"></div>
-      </div>
-
-    </aside>
-  </div>
+ <div class="gamehero"><div><div class="eyebrow">PRIVATE ROOM · <span id="roomCode" style="color:var(--gold);letter-spacing:3px"></span></div><h1>Trading Terminal</h1><div class="muted">Shared simulated market · 20 Indian stocks · 10 rounds</div></div><div class="heroactions"><span class="pill" id="roundLabel">ROUND 1 / 10</span><span class="timer" id="timer">03:00</span><button class="secondary hidden" id="startBtn">Start game</button><button class="secondary hidden" id="endRoundBtn">End round early</button></div></div>
+ <div class="panel" id="lobbyWaiting" style="margin-bottom:14px"><div class="markethead"><b>ROOM LOBBY</b><span class="pill" id="playerCount">1 / 8 PLAYERS</span></div><p class="muted" id="waitingText" style="margin:10px 0">Share the room code with a friend. The host can start once 2 players have joined.</p><div id="roomPlayers" class="roomplayers"></div></div>
+ <div class="stats"><div class="panel stat"><small>PORTFOLIO VALUE</small><strong id="portfolio">₹10,00,000</strong></div><div class="panel stat"><small>AVAILABLE CASH</small><strong id="cash">₹10,00,000</strong></div><div class="panel stat"><small>DAY P&L</small><strong id="pnl">₹0</strong></div><div class="panel stat"><small>PENDING ORDERS</small><strong id="ordersCount">0</strong></div></div>
+ <div class="layout"><div>
+  <div class="panel"><div class="markethead"><h3>MARKET WATCH</h3><span class="pill">NSE · SIMULATED</span></div><div class="chartbox"><canvas id="chart"></canvas></div><div class="tablewrap"><table class="table"><thead><tr><th>STOCK</th><th>LAST PRICE</th><th>CHANGE</th><th>VOLUME</th><th></th></tr></thead><tbody id="stocks"></tbody></table></div></div>
+  <div class="two"><div class="panel"><h3>MY PORTFOLIO</h3><div id="holdings" class="muted">No holdings yet.</div></div><div class="panel"><h3>ORDER HISTORY</h3><div id="history" class="muted">No orders submitted.</div></div></div>
+ </div><aside>
+  <div class="panel"><h3>PLACE AN ORDER</h3><div class="tradegrid"><div class="field"><label for="symbol">STOCK</label><select id="symbol"></select></div><div class="field"><label for="side">ORDER TYPE</label><select id="side"><option>BUY</option><option>SELL</option></select></div><div class="field"><label for="qty">QUANTITY</label><input id="qty" type="number" min="1" max="100000" value="10"></div><div class="field"><label>ESTIMATED VALUE</label><input id="estimate" disabled value="₹0"></div></div><div class="tradebuttons"><button class="buy" id="buyBtn">↗ Queue BUY</button><button class="sell" id="sellBtn">↘ Queue SELL</button></div><div class="notice">Orders are queued and settled together at round close using the same simulated closing price. Your cash and holdings update after settlement.</div></div>
+  <div class="panel sectiongap"><h3>LEADERBOARD</h3><div id="leaders"></div></div><div class="panel sectiongap"><h3>MARKET NEWS</h3><div id="news"></div></div>
+ </aside></div>
+ <div id="finishedBanner" class="panel hidden" style="margin-top:15px;border-color:#b58d3b"><h2>🏆 MARKET WARS COMPLETE</h2><p class="muted">All 10 rounds are finished. The leaderboard above shows the final standings.</p></div>
 </section>
-
-<div id="msg" class="muted"></div>
-
-</main>
-
+</main><div id="toast" class="toast hidden" role="status"></div>
 <script src="/socket.io/socket.io.js"></script>
-
 <script>
-const socket = io();
-
-let roomCode = "";
-let state = null;
-
-const $ = id => document.getElementById(id);
-
-const fmt = n =>
-  "₹" + Math.round(n).toLocaleString("en-IN");
-
-function say(message) {
-  $("msg").textContent = message || "";
-}
-
-function entered(code) {
-  roomCode = code;
-  $("room").textContent = code;
-  $("lobby").classList.add("hidden");
-  $("game").classList.remove("hidden");
-}
-
-// CREATE ROOM
-$("create").onclick = () => {
-  const name = $("name").value.trim();
-
-  if (!name) {
-    return say("Please enter your player name.");
-  }
-
-  $("create").disabled = true;
-
-  socket.emit("createRoom", {name}, r => {
-    $("create").disabled = false;
-
-    if (!r || !r.ok) {
-      return say(r?.error || "Could not create room. Please try again.");
-    }
-
-    entered(r.code);
-    say("Private room created. Share the room code with friends.");
-  });
-};
-
-// JOIN ROOM
-$("join").onclick = () => {
-  const name = $("name").value.trim();
-  const code = $("code").value.trim().toUpperCase();
-
-  if (!name) {
-    return say("Please enter your player name.");
-  }
-
-  if (code.length !== 6) {
-    return say("Enter a valid 6-character room code.");
-  }
-
-  $("join").disabled = true;
-
-  socket.emit("joinRoom", {code, name}, r => {
-    $("join").disabled = false;
-
-    if (!r || !r.ok) {
-      return say(r?.error || "Could not join room.");
-    }
-
-    entered(r.code);
-    say("You joined the room successfully.");
-  });
-};
-
-// START GAME
-$("start").onclick = () => {
-  $("start").disabled = true;
-
-  socket.emit("startGame", {}, r => {
-    $("start").disabled = false;
-
-    if (!r || !r.ok) {
-      return say(r?.error || "Could not start game.");
-    }
-
-    say("Game started!");
-  });
-};
-
-// PLACE ORDER
-$("submit").onclick = () => {
-  if (!state || state.phase !== "trading") {
-    return say("Trading is not open.");
-  }
-
-  const quantity = Number($("qty").value);
-
-  if (!Number.isSafeInteger(quantity) || quantity < 1) {
-    return say("Enter a valid quantity.");
-  }
-
-  socket.emit("placeOrder", {
-    side: $("side").value,
-    symbol: $("symbol").value,
-    quantity,
-    orderId: crypto.randomUUID()
-  }, r => {
-    say(
-      r && r.ok
-        ? "Order queued successfully."
-        : (r?.error || "Could not place order.")
-    );
-  });
-};
-
-// RECEIVE ROOM STATE
-socket.on("state", s => {
-  state = s;
-
-  entered(s.code);
-
-  // HOST START BUTTON
-  const canStart =
-    s.phase === "lobby" &&
-    s.isHost === true &&
-    s.players.length >= 2;
-
-  $("start").classList.toggle("hidden", !canStart);
-
- // ROUND DISPLAY
-  $("round").textContent =
-    s.phase === "lobby"
-      ? "LOBBY"
-      : ${s.round} / ${s.totalRounds};
-
-  // TIMER DISPLAY
-  $("timer").textContent =
-    s.phase === "trading"
-      ? ${String(Math.floor(s.secondsLeft / 60)).padStart(2,"0")}:${String(s.secondsLeft % 60).padStart(2,"0")}
-      : s.phase.toUpperCase();
-
-  if (!s.you) return;
-
-  $("value").textContent = fmt(s.you.portfolioValue);
-  $("cash").textContent = fmt(s.you.cash);
-
-  const pnl = s.you.portfolioValue - 1000000;
-
-  $("pnl").textContent =
-    (pnl >= 0 ? "+" : "") + fmt(pnl);
-
-  $("pnl").className =
-    pnl >= 0 ? "positive" : "negative";
-
-  // STOCK DROPDOWN - FIXED
-  $("symbol").innerHTML =
-    Object.keys(s.market)
-      .map(k => <option value="${k}">${k}</option>)
-      .join("");
-
-  // MARKET WATCH
-  $("stocks").innerHTML =
-    Object.values(s.market).map(x => `
-      <tr>
-        <td><b>${x.symbol}</b></td>
-        <td>${fmt(x.price)}</td>
-        <td class="${x.changePct >= 0 ? "positive" : "negative"}">
-          ${x.changePct >= 0 ? "+" : ""}${x.changePct.toFixed(2)}%
-        </td>
-        <td>
-          <button class="alt"
-            onclick="document.getElementById('symbol').value='${x.symbol}'">
-            Select
-          </button>
-        </td>
-      </tr>
-    `).join("");
-
-  // HOLDINGS
-  $("holdings").innerHTML =
-    Object.entries(s.you.holdings)
-      .map(([k,v]) => `
-        <div class="leader">
-          <span>${k} × ${v}</span>
-          <b>${fmt(v * s.market[k].price)}</b>
-        </div>
-      `).join("") || "No holdings yet";
-
-  // PENDING ORDERS
-  $("orders").innerHTML =
-    s.you.pendingOrders.map(o => `
-      <div class="leader">
-        <span>${o.side} ${o.quantity} ${o.symbol}</span>
-        <button class="alt" onclick="cancelOrder('${o.id}')">
-          Cancel
-        </button>
-      </div>
-    `).join("") || "No pending orders";
-
-  // TRANSACTIONS
-  $("transactions").innerHTML =
-    s.you.transactions.slice(0,8).map(t => `
-      <div class="leader">
-        <span>${t.side} ${t.quantity} ${t.symbol}</span>
-        <b>${t.status}</b>
-      </div>
-    `).join("") || "No transactions";
-
-  // LEADERBOARD
-  $("leaders").innerHTML =
-    s.players.map((p,i) => `
-      <div class="leader">
-        <span>${i+1}. ${p.name}</span>
-        <b>${fmt(p.portfolioValue)}</b>
-      </div>
-    `).join("");
-
-  // PLAYERS
-  $("players").innerHTML =
-    s.players.map(p => `
-      <div class="leader">
-        <span>${p.name}</span>
-        <span class="${p.connected ? "positive" : "negative"}">
-          ${p.connected ? "● online" : "○ offline"}
-        </span>
-      </div>
-    `).join("");
-
-  // MARKET NEWS
-  $("news").innerHTML =
-    s.news.map(n => `
-      <div class="leader">
-        <span>
-          <b>${n.title}</b><br>
-          <small class="muted">${n.body}</small>
-        </span>
-      </div>
-    `).join("");
-});
-
-// CANCEL ORDER
-function cancelOrder(id) {
-  socket.emit("cancelOrder", {orderId:id}, r => {
-    say(
-      r && r.ok
-        ? "Order cancelled."
-        : (r?.error || "Could not cancel order.")
-    );
-  });
-}
-
-// CONNECTION STATUS
-socket.on("connect", () => {
-  say("Connected to game server.");
-});
-
-socket.on("connect_error", () => {
-  say("Cannot connect to game server. Please refresh and try again.");
-});
-
-socket.on("disconnect", () => {
-  say("Disconnected. Reconnect to resume your session.");
-});
+(()=>{
+ const $=id=>document.getElementById(id);const money=n=>'₹'+Math.round(n||0).toLocaleString('en-IN');const pct=n=>(n>=0?'+':'')+Number(n||0).toFixed(2)+'%';
+ const socket=io({transports:['websocket','polling']});let state=null,toastTimer=null,chartSymbol='RELIANCE';
+ function toast(message,error=false){const el=$('toast');el.textContent=message;el.classList.remove('hidden','error');if(error)el.classList.add('error');clearTimeout(toastTimer);toastTimer=setTimeout(()=>el.classList.add('hidden'),3600);}
+ function setStatus(message,error=false){$('statusline').textContent=message||'';$('statusline').style.color=error?'var(--red)':'var(--muted)';}
+ function name(){return $('playerName').value.trim();}
+ function validName(){if(!name()){setStatus('Please enter your trader name.',true);$('playerName').focus();return false;}return true;}
+ $('createBtn').addEventListener('click',()=>{if(!validName())return;setStatus('Connecting to the trading arena…');$('createBtn').disabled=true;socket.emit('createRoom',{name:name()});});
+ $('joinBtn').addEventListener('click',()=>{if(!validName())return;const code=$('joinCode').value.trim().toUpperCase();if(!/^[A-Z0-9]{6}$/.test(code)){setStatus('Enter a valid 6-character room code.',true);$('joinCode').focus();return;}setStatus('Joining room…');$('joinBtn').disabled=true;socket.emit('joinRoom',{code,name:name()});});
+ $('joinFocusBtn').addEventListener('click',()=>$('joinCode').focus());$('joinCode').addEventListener('input',e=>e.target.value=e.target.value.toUpperCase());
+ socket.on('connect',()=>{setStatus('Server connected. Ready to play.');$('createBtn').disabled=false;$('joinBtn').disabled=false;});
+ socket.on('disconnect',()=>{setStatus('Connection lost. Reconnecting…',true);$('createBtn').disabled=false;$('joinBtn').disabled=false;toast('Connection to game server was lost.',true);});
+ socket.on('connect_error',()=>{setStatus('Could not connect to game server. Please refresh and try again.',true);$('createBtn').disabled=false;$('joinBtn').disabled=false;});
+ socket.on('appError',({message}={})=>{toast(message||'Something went wrong.',true);setStatus(message||'Something went wrong.',true);$('createBtn').disabled=false;$('joinBtn').disabled=false;});
+ function enterRoom(code){$('lobby').classList.add('hidden');$('game').classList.remove('hidden');$('roomPill').textContent='ROOM '+code;$('roomCode').textContent=code;window.scrollTo({top:0,behavior:'smooth'});}
+ socket.on('roomCreated',({code})=>{enterRoom(code);toast('Private room created. Share the code with your friends.');});
+ socket.on('roomJoined',({code})=>{enterRoom(code);toast('You joined room '+code+'.');});
+ socket.on('state',s=>{state=s;render();});
+ function render(){if(!state)return;const me=state.you; if(!me)return;
+  $('roomCode').textContent=state.code;$('roomPill').textContent='ROOM '+state.code;$('roundLabel').textContent=state.phase==='finished'?'COMPLETE':`ROUND ${state.round} / ${state.totalRounds}`;$('timer').textContent=state.phase==='finished'?'DONE':`${String(Math.floor(state.secondsLeft/60)).padStart(2,'0')}:${String(state.secondsLeft%60).padStart(2,'0')}`;
+  $('portfolio').textContent=money(me.portfolioValue);$('cash').textContent=money(me.cash);const pnl=me.portfolioValue-1000000;$('pnl').textContent=(pnl>=0?'+':'')+money(pnl);$('pnl').className=pnl>=0?'positive':'negative';$('ordersCount').textContent=me.pendingOrders.length;
+  $('lobbyWaiting').classList.toggle('hidden',state.phase!=='lobby');$('playerCount').textContent=`${state.players.length} / ${state.maxPlayers} PLAYERS`;$('waitingText').textContent=state.players.length<2?'Share the room code with a friend. The host can start once 2 players have joined.':'Players are ready. The host can start the game.';
+  $('roomPlayers').innerHTML=state.players.map(p=>`<span class="playerchip">${escapeHtml(p.name)} ${p.isHost?'👑':''} · ${p.online?'● Online':'○ Offline'}</span>`).join('');
+  const canStart=state.phase==='lobby'&&state.isHost&&state.players.length>=2;$('startBtn').classList.toggle('hidden',!canStart);$('endRoundBtn').classList.toggle('hidden',!(state.phase==='active'&&state.isHost));$('finishedBanner').classList.toggle('hidden',state.phase!=='finished');
+  const symbols=state.market.map(x=>x.symbol);if(!$('symbol').options.length){$('symbol').innerHTML=symbols.map(s=>`<option value="${s}">${s}</option>`).join('');}if(!symbols.includes($('symbol').value))$('symbol').value=symbols[0];
+  $('stocks').innerHTML=state.market.map(x=>`<tr><td><span class="stock">${x.symbol}</span><div class="symbol">NSE · EQUITY</div></td><td>${money(x.price)}</td><td class="${x.change>=0?'positive':'negative'}">${pct(x.change)}</td><td>${(x.volume/1000).toFixed(0)}K</td><td><button class="secondary rowbtn" data-symbol="${x.symbol}">Trade</button></td></tr>`).join('');
+  $('holdings').innerHTML=Object.entries(me.holdings).filter(([,q])=>q>0).map(([s,q])=>{const stock=state.market.find(x=>x.symbol===s);return `<div class="holding"><span>${s} <small class="muted">× ${q}</small></span><b>${money(q*(stock?.price||0))}</b></div>`}).join('')||'<span class="muted">No holdings yet. Place your first trade.</span>';
+  $('history').innerHTML=me.transactions.slice(0,8).map(t=>`<div class="newsitem"><b>${escapeHtml(t.text)}</b><small>${t.status}</small></div>`).join('')||'<span class="muted">No orders submitted.</span>';
+  $('leaders').innerHTML=state.players.map((p,i)=>`<div class="leader"><span>${i+1}. ${escapeHtml(p.name)} ${p.id===socket.id?'<small class="positive">YOU</small>':''}</span><b>${money(p.portfolioValue)}</b></div>`).join('');
+  $('news').innerHTML=state.news.map(n=>`<div class="newsitem"><b>${escapeHtml(n.title)}</b><small>${escapeHtml(n.body)}</small></div>`).join('');
+  updateEstimate();drawChart();
+ }
+ function escapeHtml(s){return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
+ function updateEstimate(){if(!state)return;const stock=state.market.find(x=>x.symbol===$('symbol').value);$('estimate').value=money((stock?.price||0)*(Number($('qty').value)||0));}
+ function place(side){if(!state||state.phase!=='active')return toast('The game is not active yet.',true);socket.emit('placeOrder',{side,symbol:$('symbol').value,quantity:Number($('qty').value)});}
+ $('buyBtn').addEventListener('click',()=>place('BUY'));$('sellBtn').addEventListener('click',()=>place('SELL'));$('symbol').addEventListener('change',()=>{chartSymbol=$('symbol').value;updateEstimate();drawChart();});$('qty').addEventListener('input',updateEstimate);
+ $('stocks').addEventListener('click',e=>{const b=e.target.closest('[data-symbol]');if(b){$('symbol').value=b.dataset.symbol;chartSymbol=b.dataset.symbol;updateEstimate();drawChart();$('symbol').scrollIntoView({behavior:'smooth',block:'center'});}});
+ $('startBtn').addEventListener('click',()=>socket.emit('startGame'));$('endRoundBtn').addEventListener('click',()=>{if(confirm('Close this round and settle all queued orders at the shared closing prices?'))socket.emit('endRound');});
+ function drawChart(){if(!state)return;const canvas=$('chart'),ctx=canvas.getContext('2d'),rect=canvas.getBoundingClientRect(),dpr=window.devicePixelRatio||1,w=Math.max(10,rect.width),h=Math.max(10,rect.height);canvas.width=w*dpr;canvas.height=h*dpr;ctx.setTransform(dpr,0,0,dpr,0,0);ctx.clearRect(0,0,w,h);for(let i=1;i<4;i++){ctx.strokeStyle='#26364b';ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(0,h*i/4);ctx.lineTo(w,h*i/4);ctx.stroke();}const s=state.market.find(x=>x.symbol===$('symbol').value)||state.market[0];const arr=s.history||[s.price];const min=Math.min(...arr)*.996,max=Math.max(...arr)*1.004;const up=arr[arr.length-1]>=arr[0];ctx.strokeStyle=up?'#39e69a':'#ff596b';ctx.lineWidth=2.5;ctx.beginPath();arr.forEach((v,i)=>{const x=8+i*(w-16)/Math.max(1,arr.length-1),y=h-8-(v-min)/(max-min||1)*(h-16);if(i)ctx.lineTo(x,y);else ctx.moveTo(x,y);});ctx.stroke();ctx.lineTo(w-8,h-8);ctx.lineTo(8,h-8);ctx.closePath();const grad=ctx.createLinearGradient(0,0,0,h);grad.addColorStop(0,up?'#39e69a35':'#ff596b35');grad.addColorStop(1,'#10172500');ctx.fillStyle=grad;ctx.fill();}
+ window.addEventListener('resize',drawChart);
+})();
 </script>
-
-</body>
-</html>
+</body></html>
