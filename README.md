@@ -1,31 +1,40 @@
-# MARKET WARS — Online Multiplayer MVP
+# MARKET WARS — Multiplayer Trading Arena
 
-## Included
-- Node.js + Express + Socket.IO server
-- Private six-character room codes; 2–8 players
-- Shared server-generated simulated Indian stock prices and news
+A Node.js + Express + Socket.IO browser game for 2–8 players. The project uses a dark cinematic gaming interface with the supplied Bull-vs-Bear MARKET WARS cover art.
+
+## Features
+- Private 6-character room codes
+- 2–8 players per room; host-controlled start
 - ₹10,00,000 virtual starting cash per player
-- 3-minute rounds, 10 rounds
-- Server-side order validation, duplicate-ID checks, cash/share reservation checks
-- Batch settlement at the same round-end price for each symbol
-- Private holdings, cash, pending orders and transaction history
-- Shared leaderboard and responsive dark trading UI
+- 20 simulated Indian equity symbols
+- 10 rounds, 3 minutes per round
+- Shared server-generated market prices and common round-close settlement
+- BUY/SELL orders queued during a round
+- Private player cash, holdings, pending orders and transaction history
+- Shared leaderboard, room roster and simulated market news
+- Responsive desktop and mobile UI
+- Health endpoint at `/health`
 
 ## Run locally
-1. Install Node.js 20 or later.
-2. Extract this ZIP.
-3. In the project folder run: `npm install`
-4. Run: `npm start`
-5. Open `http://localhost:3000` in two separate browser windows.
-6. Create a room in one window, join using the six-character code in the other.
-7. Host starts once both players are in the lobby.
 
-## Host online
-Deploy this folder to a Node.js host that supports long-lived WebSocket connections (for example a service configured for Node apps). Set the start command to `npm start` and expose the assigned PORT. Share the HTTPS URL with players.
+Requires Node.js 18 or newer.
 
-## Important limitations
-- This is an MVP starter, not yet production-hardened.
-- Room/player state is in server memory and is lost on server restart.
-- Reconnection recovery, persistent database storage, authentication, rate limiting, multi-instance Redis coordination, automated test suite, and production deployment still need implementation.
-- Simulated prices/news only; no real market data or real-money trading.
-- Host is the room creator; room access currently uses a room code only.
+```bash
+npm install
+npm start
+```
+
+Open `http://localhost:3000` in a browser. For multiplayer testing, open the same deployed/local URL on two different devices on the same reachable network or public host.
+
+## Deploy on Render
+
+- Runtime: Node
+- Build command: `npm install`
+- Start command: `npm start`
+- Add no environment variables; Render supplies `PORT`.
+
+## Important notes
+
+- All prices and events are simulated. This is not connected to live NSE prices and does not place real trades.
+- Room state is held in server memory. Restarting the server clears active rooms; use a persistent store and multi-instance coordination before production scaling.
+- This project package is a rebuilt source baseline. Test the deployed service and two-device gameplay before submitting it to a contest.
