@@ -446,13 +446,13 @@ socket.on("state", s => {
 
   $("start").classList.toggle("hidden", !canStart);
 
-  // ROUND DISPLAY - FIXED
+ // ROUND DISPLAY
   $("round").textContent =
     s.phase === "lobby"
       ? "LOBBY"
       : ${s.round} / ${s.totalRounds};
 
-  // TIMER DISPLAY - FIXED
+  // TIMER DISPLAY
   $("timer").textContent =
     s.phase === "trading"
       ? ${String(Math.floor(s.secondsLeft / 60)).padStart(2,"0")}:${String(s.secondsLeft % 60).padStart(2,"0")}
