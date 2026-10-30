@@ -48,21 +48,27 @@ header{height:68px;display:flex;align-items:center;justify-content:space-between
 <script>
 (()=>{
  const $=id=>document.getElementById(id);const money=n=>'₹'+Math.round(n||0).toLocaleString('en-IN');const pct=n=>(n>=0?'+':'')+Number(n||0).toFixed(2)+'%';
- const socket=io({transports:['websocket','polling']});let state=null,toastTimer=null,chartSymbol='RELIANCE';
+ const socket=io({transports:['websocket','polling']});let state=null,toastTimer=null,chartSymbol='RELIANCE',myPlayerId=null;
+ const SESSION_KEY='marketWarsSession';
+ function saveSession(data){localStorage.setItem(SESSION_KEY,JSON.stringify(data));}
+ function readSession(){try{return JSON.parse(localStorage.getItem(SESSION_KEY)||'null');}catch(_){return null;}}
+ function clearSession(){localStorage.removeItem(SESSION_KEY);}
  function toast(message,error=false){const el=$('toast');el.textContent=message;el.classList.remove('hidden','error');if(error)el.classList.add('error');clearTimeout(toastTimer);toastTimer=setTimeout(()=>el.classList.add('hidden'),3600);}
  function setStatus(message,error=false){$('statusline').textContent=message||'';$('statusline').style.color=error?'var(--red)':'var(--muted)';}
  function name(){return $('playerName').value.trim();}
  function validName(){if(!name()){setStatus('Please enter your trader name.',true);$('playerName').focus();return false;}return true;}
- $('createBtn').addEventListener('click',()=>{if(!validName())return;setStatus('Connecting to the trading arena…');$('createBtn').disabled=true;socket.emit('createRoom',{name:name()});});
- $('joinBtn').addEventListener('click',()=>{if(!validName())return;const code=$('joinCode').value.trim().toUpperCase();if(!/^[A-Z0-9]{6}$/.test(code)){setStatus('Enter a valid 6-character room code.',true);$('joinCode').focus();return;}setStatus('Joining room…');$('joinBtn').disabled=true;socket.emit('joinRoom',{code,name:name()});});
+ $('createBtn').addEventListener('click',()=>{if(!validName())return;clearSession();setStatus('Connecting to the trading arena…');$('createBtn').disabled=true;socket.emit('createRoom',{name:name()});});
+ $('joinBtn').addEventListener('click',()=>{if(!validName())return;clearSession();const code=$('joinCode').value.trim().toUpperCase();if(!/^[A-Z0-9]{6}$/.test(code)){setStatus('Enter a valid 6-character room code.',true);$('joinCode').focus();return;}setStatus('Joining room…');$('joinBtn').disabled=true;socket.emit('joinRoom',{code,name:name()});});
  $('joinFocusBtn').addEventListener('click',()=>$('joinCode').focus());$('joinCode').addEventListener('input',e=>e.target.value=e.target.value.toUpperCase());
- socket.on('connect',()=>{setStatus('Server connected. Ready to play.');$('createBtn').disabled=false;$('joinBtn').disabled=false;});
- socket.on('disconnect',()=>{setStatus('Connection lost. Reconnecting…',true);$('createBtn').disabled=false;$('joinBtn').disabled=false;toast('Connection to game server was lost.',true);});
- socket.on('connect_error',()=>{setStatus('Could not connect to game server. Please refresh and try again.',true);$('createBtn').disabled=false;$('joinBtn').disabled=false;});
+ socket.on('connect',()=>{const saved=readSession();if(saved?.code&&saved?.playerId){myPlayerId=saved.playerId;setStatus('Reconnecting to your MARKET WARS room…');socket.emit('reconnectRoom',saved);}else{setStatus('Server connected. Ready to play.');$('createBtn').disabled=false;$('joinBtn').disabled=false;}});
+ socket.on('disconnect',()=>{setStatus('Connection interrupted. Reconnecting to your room…',true);toast('Connection interrupted. Your room data is safe on the server.',true);});
+ socket.on('connect_error',()=>{setStatus('Could not connect to game server. Retrying automatically…',true);});
  socket.on('appError',({message}={})=>{toast(message||'Something went wrong.',true);setStatus(message||'Something went wrong.',true);$('createBtn').disabled=false;$('joinBtn').disabled=false;});
  function enterRoom(code){$('lobby').classList.add('hidden');$('game').classList.remove('hidden');$('roomPill').textContent='ROOM '+code;$('roomCode').textContent=code;window.scrollTo({top:0,behavior:'smooth'});}
- socket.on('roomCreated',({code})=>{enterRoom(code);toast('Private room created. Share the code with your friends.');});
- socket.on('roomJoined',({code})=>{enterRoom(code);toast('You joined room '+code+'.');});
+ socket.on('roomCreated',({code,playerId})=>{myPlayerId=playerId;saveSession({code,playerId});enterRoom(code);toast('Private room created. Share the code with your friends.');});
+ socket.on('roomJoined',({code,playerId})=>{myPlayerId=playerId;saveSession({code,playerId});enterRoom(code);toast('You joined room '+code+'.');});
+ socket.on('roomRejoined',({code,playerId})=>{myPlayerId=playerId;saveSession({code,playerId});enterRoom(code);setStatus('Reconnected to room '+code+'.');toast('Welcome back. Your portfolio and orders are restored.');});
+ socket.on('sessionInvalid',()=>{clearSession();setStatus('Your previous room is no longer available. Create or join a room.',true);$('createBtn').disabled=false;$('joinBtn').disabled=false;});
  socket.on('state',s=>{state=s;render();});
  function render(){if(!state)return;const me=state.you; if(!me)return;
   $('roomCode').textContent=state.code;$('roomPill').textContent='ROOM '+state.code;$('roundLabel').textContent=state.phase==='finished'?'COMPLETE':`ROUND ${state.round} / ${state.totalRounds}`;$('timer').textContent=state.phase==='finished'?'DONE':`${String(Math.floor(state.secondsLeft/60)).padStart(2,'0')}:${String(state.secondsLeft%60).padStart(2,'0')}`;
@@ -74,7 +80,7 @@ header{height:68px;display:flex;align-items:center;justify-content:space-between
   $('stocks').innerHTML=state.market.map(x=>`<tr><td><span class="stock">${x.symbol}</span><div class="symbol">NSE · EQUITY</div></td><td>${money(x.price)}</td><td class="${x.change>=0?'positive':'negative'}">${pct(x.change)}</td><td>${(x.volume/1000).toFixed(0)}K</td><td><button class="secondary rowbtn" data-symbol="${x.symbol}">Trade</button></td></tr>`).join('');
   $('holdings').innerHTML=Object.entries(me.holdings).filter(([,q])=>q>0).map(([s,q])=>{const stock=state.market.find(x=>x.symbol===s);return `<div class="holding"><span>${s} <small class="muted">× ${q}</small></span><b>${money(q*(stock?.price||0))}</b></div>`}).join('')||'<span class="muted">No holdings yet. Place your first trade.</span>';
   $('history').innerHTML=me.transactions.slice(0,8).map(t=>`<div class="newsitem"><b>${escapeHtml(t.text)}</b><small>${t.status}</small></div>`).join('')||'<span class="muted">No orders submitted.</span>';
-  $('leaders').innerHTML=state.players.map((p,i)=>`<div class="leader"><span>${i+1}. ${escapeHtml(p.name)} ${p.id===socket.id?'<small class="positive">YOU</small>':''}</span><b>${money(p.portfolioValue)}</b></div>`).join('');
+  $('leaders').innerHTML=state.players.map((p,i)=>`<div class="leader"><span>${i+1}. ${escapeHtml(p.name)} ${p.id===myPlayerId?'<small class="positive">YOU</small>':''}</span><b>${money(p.portfolioValue)}</b></div>`).join('');
   $('news').innerHTML=state.news.map(n=>`<div class="newsitem"><b>${escapeHtml(n.title)}</b><small>${escapeHtml(n.body)}</small></div>`).join('');
   updateEstimate();drawChart();
  }
