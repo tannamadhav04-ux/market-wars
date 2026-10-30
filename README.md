@@ -11,6 +11,8 @@ A Node.js + Express + Socket.IO browser game for 2–8 players. The project uses
 - Shared server-generated market prices and common round-close settlement
 - BUY/SELL orders queued during a round
 - Private player cash, holdings, pending orders and transaction history
+- Player identity survives socket reconnects; rooms can be rejoined with the same browser
+- Host gets a 30-second reconnect grace period, then host privileges transfer to an online player
 - Shared leaderboard, room roster and simulated market news
 - Responsive desktop and mobile UI
 - Health endpoint at `/health`
@@ -36,5 +38,5 @@ Open `http://localhost:3000` in a browser. For multiplayer testing, open the sam
 ## Important notes
 
 - All prices and events are simulated. This is not connected to live NSE prices and does not place real trades.
-- Room state is held in server memory. Restarting the server clears active rooms; use a persistent store and multi-instance coordination before production scaling.
+- Room state is held in server memory. Player disconnects do not erase room state, but restarting the server or deploying a new server process still clears active rooms. Use a persistent store and multi-instance coordination before production scaling. The reconnect grace period is 30 seconds.
 - This project package is a rebuilt source baseline. Test the deployed service and two-device gameplay before submitting it to a contest.

@@ -12,6 +12,7 @@ app.use(express.static(path.join(__dirname, 'public')));
 app.get('/health', (_req,res) => res.json({ok:true, app:'MARKET WARS', rooms: rooms.size}));
 
 const START_CASH = 1_000_000;
+const HOST_RECONNECT_GRACE_MS = 30_000;
 const MIN_PLAYERS = 2, MAX_PLAYERS = 8, TOTAL_ROUNDS = 10, ROUND_SECONDS = 180;
 const STOCKS = [
  ['RELIANCE',1450],['HDFCBANK',1720],['ICICIBANK',1280],['TCS',3450],['INFY',1520],['SBIN',825],['ITC',438],['LT',3620],['BHARTIARTL',1580],['AXISBANK',1120],['TATAMOTORS',970],['MARUTI',12400],['SUNPHARMA',1680],['WIPRO',510],['ONGC',285],['NTPC',390],['ADANIPORTS',1420],['HINDUNILVR',2480],['BAJFINANCE',7200],['TATASTEEL',165]
@@ -27,15 +28,30 @@ function snapshot(r, viewerId) {
  const p = r.players.get(viewerId);
  return {code:r.code,phase:r.phase,round:r.round,totalRounds:TOTAL_ROUNDS,secondsLeft:r.secondsLeft,market:Object.values(r.market),news:r.news,players:[...r.players.values()].map(x=>publicPlayer(x,r)).sort((a,b)=>b.portfolioValue-a.portfolioValue),isHost:viewerId===r.hostId,you:p?{cash:money(p.cash),holdings:p.holdings,pendingOrders:p.orders,transactions:p.transactions,portfolioValue:money(portfolioValue(p,r))}:null,minPlayers:MIN_PLAYERS,maxPlayers:MAX_PLAYERS};
 }
-function emitRoom(r) { for (const p of r.players.values()) if (p.online) io.to(p.id).emit('state',snapshot(r,p.id)); }
+function emitRoom(r) { for (const p of r.players.values()) if (p.online && p.socketId) io.to(p.socketId).emit('state',snapshot(r,p.id)); }
+function findPlayerBySocket(socketId) {
+ for (const r of rooms.values()) for (const p of r.players.values()) if (p.socketId === socketId) return {r,p};
+ return null;
+}
+function transferHost(r) {
+ const next = [...r.players.values()].find(p => p.online && p.socketId);
+ if (!next) return false;
+ r.hostId = next.id;
+ if (r.hostDisconnectTimer) clearTimeout(r.hostDisconnectTimer);
+ r.hostDisconnectTimer = null;
+ addNews(r, 'HOST TRANSFERRED', `${next.name} is now the room host.`);
+ emitRoom(r);
+ return true;
+}
 function emitError(socket,message){socket.emit('appError',{message});}
 function addNews(r,title,body){r.news.unshift({title,body,at:Date.now()});r.news=r.news.slice(0,6);}
 function createRoom(socket,name){
  let code; do { code=makeCode(); } while(rooms.has(code));
- const player={id:socket.id,name,cash:START_CASH,holdings:{},orders:[],transactions:[],online:true};
- const r={code,hostId:socket.id,phase:'lobby',round:1,secondsLeft:ROUND_SECONDS,market:makeMarket(),news:[],players:new Map([[socket.id,player]]),timer:null};
+ const playerId=makeId();
+ const player={id:playerId,socketId:socket.id,name,cash:START_CASH,holdings:{},orders:[],transactions:[],online:true};
+ const r={code,hostId:playerId,phase:'lobby',round:1,secondsLeft:ROUND_SECONDS,market:makeMarket(),news:[],players:new Map([[playerId,player]]),timer:null,hostDisconnectTimer:null};
  addNews(r,'MARKET OPEN','The simulated trading arena is ready.');
- rooms.set(code,r);socket.join(code);socket.emit('roomCreated',{code});emitRoom(r);
+ rooms.set(code,r);socket.join(code);socket.emit('roomCreated',{code,playerId});emitRoom(r);
 }
 function joinRoom(socket,code,name){
  const r=rooms.get(code);
@@ -43,10 +59,23 @@ function joinRoom(socket,code,name){
  if(r.phase!=='lobby')return emitError(socket,'This game has already started.');
  if(r.players.size>=MAX_PLAYERS)return emitError(socket,'This room is full (maximum 8 players).');
  if([...r.players.values()].some(p=>p.name.toLowerCase()===name.toLowerCase()))return emitError(socket,'That player name is already in this room. Choose another name.');
- const p={id:socket.id,name,cash:START_CASH,holdings:{},orders:[],transactions:[],online:true};r.players.set(socket.id,p);socket.join(code);socket.emit('roomJoined',{code});emitRoom(r);
+ const playerId=makeId();
+ const p={id:playerId,socketId:socket.id,name,cash:START_CASH,holdings:{},orders:[],transactions:[],online:true};r.players.set(playerId,p);socket.join(code);socket.emit('roomJoined',{code,playerId});emitRoom(r);
+}
+function reconnectRoom(socket,code,playerId){
+ const r=rooms.get(String(code||'').toUpperCase());
+ const p=r&&r.players.get(String(playerId||''));
+ if(!r||!p)return socket.emit('sessionInvalid');
+ if(p.socketId&&p.socketId!==socket.id){const old=io.sockets.sockets.get(p.socketId);if(old)old.disconnect(true);}
+ p.socketId=socket.id;p.online=true;socket.join(r.code);
+ if(p.id===r.hostId&&r.hostDisconnectTimer){clearTimeout(r.hostDisconnectTimer);r.hostDisconnectTimer=null;}
+ socket.emit('roomRejoined',{code:r.code,playerId:p.id});
+ addNews(r,'PLAYER RECONNECTED',`${p.name} reconnected to the room.`);
+ emitRoom(r);
 }
 function startGame(r,socket){
- if(socket.id!==r.hostId)return emitError(socket,'Only the room host can start the game.');
+ const player=[...r.players.values()].find(p=>p.socketId===socket.id);
+ if(!player||player.id!==r.hostId)return emitError(socket,'Only the room host can start the game.');
  if(r.phase!=='lobby')return emitError(socket,'The game has already started.');
  if(r.players.size<MIN_PLAYERS)return emitError(socket,'At least 2 players are required to start.');
  r.phase='active';r.round=1;r.secondsLeft=ROUND_SECONDS;addNews(r,'ROUND 1 LIVE','Trading is open. Orders settle together at the end of the round.');
@@ -90,10 +119,22 @@ function cleanName(v){return String(v||'').trim().replace(/[<>]/g,'').slice(0,18
 io.on('connection',socket=>{
  socket.on('createRoom',({name}={})=>{const n=cleanName(name);if(!n)return emitError(socket,'Enter your player name first.');createRoom(socket,n);});
  socket.on('joinRoom',({code,name}={})=>{const n=cleanName(name),c=String(code||'').trim().toUpperCase();if(!n)return emitError(socket,'Enter your player name first.');if(!/^[A-Z0-9]{6}$/.test(c))return emitError(socket,'Enter a valid 6-character room code.');joinRoom(socket,c,n);});
- socket.on('startGame',()=>{const r=[...rooms.values()].find(x=>x.players.has(socket.id));if(!r)return emitError(socket,'Join a room first.');startGame(r,socket);});
- socket.on('placeOrder',({side,symbol,quantity}={})=>{const r=[...rooms.values()].find(x=>x.players.has(socket.id));if(!r)return emitError(socket,'Join a room first.');queueOrder(r,r.players.get(socket.id),String(side||'').toUpperCase(),String(symbol||''),quantity,socket);});
- socket.on('endRound',()=>{const r=[...rooms.values()].find(x=>x.players.has(socket.id));if(!r)return emitError(socket,'Join a room first.');if(socket.id!==r.hostId)return emitError(socket,'Only the host can close the round early.');settleRound(r);});
- socket.on('disconnect',()=>{for(const r of rooms.values()){const p=r.players.get(socket.id);if(p){p.online=false;emitRoom(r);if(r.phase==='lobby'&&socket.id===r.hostId){const next=[...r.players.values()].find(x=>x.online);if(next)r.hostId=next.id;}break;}}});
+ socket.on('reconnectRoom',({code,playerId}={})=>reconnectRoom(socket,code,playerId));
+ socket.on('startGame',()=>{const found=findPlayerBySocket(socket.id);if(!found)return emitError(socket,'Join a room first.');startGame(found.r,socket);});
+ socket.on('placeOrder',({side,symbol,quantity}={})=>{const found=findPlayerBySocket(socket.id);if(!found)return emitError(socket,'Join a room first.');queueOrder(found.r,found.p,String(side||'').toUpperCase(),String(symbol||''),quantity,socket);});
+ socket.on('endRound',()=>{const found=findPlayerBySocket(socket.id);if(!found)return emitError(socket,'Join a room first.');if(found.p.id!==found.r.hostId)return emitError(socket,'Only the host can close the round early.');settleRound(found.r);});
+ socket.on('disconnect',()=>{
+  const found=findPlayerBySocket(socket.id);if(!found)return;
+  const {r,p}=found;p.online=false;p.socketId=null;
+  if(p.id===r.hostId){
+   if(r.hostDisconnectTimer)clearTimeout(r.hostDisconnectTimer);
+   r.hostDisconnectTimer=setTimeout(()=>{
+    const current=r.players.get(p.id);
+    if(current&&!current.online&&r.hostId===p.id)transferHost(r);
+   },HOST_RECONNECT_GRACE_MS);
+  }
+  emitRoom(r);
+ });
 });
 const PORT=process.env.PORT||3000;
 server.listen(PORT,()=>console.log(`MARKET WARS running on port ${PORT}`));
